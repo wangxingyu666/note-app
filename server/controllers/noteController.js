@@ -1,5 +1,32 @@
 import pool from "../config/db.js";
 
+// 获取首页笔记列表（按分类）
+export const getHomeNotes = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    // 获取所有分类
+    const [categories] = await pool.query("SELECT * FROM categories");
+
+    // 获取每个分类下的笔记
+    const result = await Promise.all(
+      categories.map(async (category) => {
+        const [notes] = await pool.query(
+          "SELECT * FROM notes WHERE user_id = ? AND category_id = ?",
+          [userId, category.id]
+        );
+        return {
+          category: category,
+          notes: notes,
+        };
+      })
+    );
+
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 // 创建笔记
 export const createNote = async (req, res) => {
   try {

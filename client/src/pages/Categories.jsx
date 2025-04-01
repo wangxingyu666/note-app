@@ -38,7 +38,7 @@ const Categories = () => {
           grid={{ gutter: 16, column: 4 }}
           dataSource={categories}
           renderItem={(item) => (
-            <Card hoverable className="m-2">
+            <Card hoverable className="m-2" key={item.id}>
               <Card.Meta title={item.name} />
               <a href={`/notes/categories/${item.id}`}>查看分类笔记</a>
             </Card>

@@ -1,5 +1,10 @@
 import axiosInstance from './axiosInstance';
 
+//获取所有分类下的笔记
+export const getAllCategoryNotes = async (userId) => {
+  return axiosInstance.get(`/notes/home/${userId}`);
+};
+
 //创建笔记
 export const createNote = async (noteData) => {
   return axiosInstance.post('/notes', noteData);

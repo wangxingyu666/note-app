@@ -6,12 +6,14 @@ import {
   updateNote,
   deleteNote,
   getNotesByCategory,
+  getHomeNotes,
 } from "../controllers/noteController.js";
 
 const router = express.Router();
 
 router.post("/", createNote);
 router.get("/user/:userId", getNotes);
+router.get("/home/:userId", getHomeNotes);
 router.get("/:id", getNote);
 router.get("/categories/:userId/:categoryId", getNotesByCategory);
 router.put("/:id", updateNote);

@@ -1,4 +1,4 @@
-import { Form, Input, Button, Typography } from 'antd';
+import { Form, Input, Button, Typography, message } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { loginUser } from '@/api/userApi';
 import { useStore } from '@/store/userStore';
@@ -14,7 +14,7 @@ const Login = () => {
     try {
       const response = await loginUser(values);
       setUser(response.data); // 设置用户信息
-      alert('登录成功');
+      message.success('登录成功');
       navigate('/'); // 跳转到主页
     } catch (error) {
       console.error('Login failed: ', error);

@@ -4,12 +4,14 @@ import { getNotesByCategory } from '@/api/noteApi';
 import { useStore } from '@/store/userStore';
 import { useNavigate, useParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
+import { getCategory } from '@/api/categoryApi';
 
 const CategoryNotes = () => {
   const { user } = useStore();
   const navigate = useNavigate();
   const { categoryId } = useParams();
   const [notes, setNotes] = useState([]);
+  const [categoryName, setCategoryName] = useState('');
 
   useEffect(() => {
     if (!user) navigate('/login');
@@ -18,11 +20,13 @@ const CategoryNotes = () => {
   useEffect(() => {
     const fetchNotesByCategory = async () => {
       try {
+        const categoryData = await getCategory(categoryId);
+        setCategoryName(categoryData.data.name);
         const fetchedNotes = await getNotesByCategory(user.id, categoryId);
         setNotes(fetchedNotes.data);
       } catch (error) {
-        console.error('Failed to fetch notes by category: ', error);
-        alert('获取笔记失败');
+        console.error('获取数据失败: ', error);
+        alert('获取数据失败');
       }
     };
 
@@ -34,12 +38,12 @@ const CategoryNotes = () => {
   return (
     <>
       <Navbar />
-      <h1>分类笔记列表</h1>
+      <h1>{categoryName}分类的笔记列表</h1>
       <List
         grid={{ gutter: 16, column: 4 }}
         dataSource={notes}
         renderItem={(item) => (
-          <Card className="bg-blue-100 m-2">
+          <Card className="bg-blue-100 m-2" key={item.id}>
             <Card.Meta
               title={item.title}
               description={item.content.substring(0, 60) + ' ... '}
