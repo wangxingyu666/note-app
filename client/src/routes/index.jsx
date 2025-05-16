@@ -6,10 +6,10 @@ import Home from '@/pages/Home';
 import Categories from '@/pages/Categories';
 import CategoryNotes from '@/pages/CategoryNotes';
 import Notes from '@/pages/Notes';
-import Note from '@/pages/Note';
+import Note from '@/pages/NoteDetail';
 import CreateNote from '../pages/CreateNote';
 import EditNote from '../pages/EditNote';
-
+import Settings from '../pages/Settings';
 const AppRoutes = () => {
   return (
     <Routes>
@@ -22,6 +22,7 @@ const AppRoutes = () => {
       <Route path="/notes/:id" element={<Note />} />
       <Route path="/create-note" element={<CreateNote />} />
       <Route path="/notes/edit/:noteId" element={<EditNote />} />
+      <Route path="/settings" element={<Settings />} />
     </Routes>
   );
 };

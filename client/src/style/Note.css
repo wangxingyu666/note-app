@@ -1,0 +1,45 @@
+.note-card.ant-card {
+  margin: 8px !important;
+  padding: 16px !important;
+  width: 300px;
+  height: 200px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  margin: 8px;
+  padding: 16px;
+}
+
+.note-card-content {
+  flex: 1;
+  min-height: 120px;
+  overflow: hidden;
+}
+
+.note-card .ant-card-meta-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.note-card .ant-card-meta-description {
+  flex: 1;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  max-height: 72px !important;
+}
+
+.note-card {
+  background-color: #ffffff;
+  margin: 16px 0;
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 调整网格布局间距 */
+.ant-list-grid .ant-col > .note-card {
+  margin: 8px;
+}

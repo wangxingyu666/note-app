@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { List, Card, Tag } from 'antd';
 import { getNotesByCategory } from '@/api/noteApi';
 import { useStore } from '@/store/userStore';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import { getCategory } from '@/api/categoryApi';
 
@@ -12,6 +12,8 @@ const CategoryNotes = () => {
   const { categoryId } = useParams();
   const [notes, setNotes] = useState([]);
   const [categoryName, setCategoryName] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     if (!user) navigate('/login');
@@ -20,20 +22,28 @@ const CategoryNotes = () => {
   useEffect(() => {
     const fetchNotesByCategory = async () => {
       try {
+        setLoading(true);
         const categoryData = await getCategory(categoryId);
-        setCategoryName(categoryData.data.name);
+        if (categoryData && categoryData.data) {
+          setCategoryName(categoryData.data.name);
+        }
         const fetchedNotes = await getNotesByCategory(user.id, categoryId);
-        setNotes(fetchedNotes.data);
+        if (fetchedNotes && fetchedNotes.data) {
+          setNotes(fetchedNotes.data);
+        }
       } catch (error) {
         console.error('获取数据失败: ', error);
-        alert('获取数据失败');
+        setError('获取数据失败');
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchNotesByCategory();
   }, [categoryId]);
 
-  if (!notes) return <div>Loading ...</div>;
+  if (loading) return <div>Loading ...</div>;
+  if (error) return <div>{error}</div>;
 
   return (
     <>
@@ -43,7 +53,7 @@ const CategoryNotes = () => {
         grid={{ gutter: 16, column: 4 }}
         dataSource={notes}
         renderItem={(item) => (
-          <Card className="bg-blue-100 m-2" key={item.id}>
+          <Card className="note-card" key={item.id}>
             <Card.Meta
               title={item.title}
               description={item.content.substring(0, 60) + ' ... '}
@@ -57,7 +67,7 @@ const CategoryNotes = () => {
                 ))}
               </div>
             )}
-            <a href={`/notes/${item.id}`}>查看详情</a>
+            <Link to={`/notes/${item.id}`}>查看详情</Link>
           </Card>
         )}
       />

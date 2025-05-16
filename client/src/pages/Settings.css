@@ -1,0 +1,112 @@
+.settings-layout {
+  min-height: 100vh;
+}
+
+.settings-content {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.settings-title {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.settings-tabs {
+  margin-bottom: 24px;
+}
+
+.settings-card {
+  margin-bottom: 16px;
+}
+
+.theme-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.theme-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+  transition: all 0.3s;
+}
+
+.theme-option:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.theme-option.active {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.theme-preview {
+  width: 100px;
+  height: 60px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  border: 1px solid #d9d9d9;
+}
+
+.default-theme {
+  background-color: #408fae;
+}
+
+.green-theme {
+  background-color: #52c41a;
+}
+
+.code-theme {
+  background-color: #1a1a1a;
+  border: 1px solid #52c41a;
+}
+
+.sport-theme {
+  background-color: #fa541c;
+}
+
+.dream-theme {
+  background: linear-gradient(to right, #8e2de2, #4a00e0);
+}
+
+.navbar-preview-container {
+  margin-top: 16px;
+}
+
+.navbar-preview {
+  margin-top: 8px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  overflow: hidden;
+  transform: scale(0.8);
+  transform-origin: top left;
+}
+
+.avatar-upload {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 24px;
+  gap: 16px;
+}
+
+.logout-card {
+  margin-top: 24px;
+  text-align: center;
+}
+
+/* 响应式调整 */
+@media (max-width: 576px) {
+  .theme-options {
+    justify-content: center;
+  }
+
+  .settings-content {
+    padding: 16px;
+  }
+}

@@ -11,8 +11,8 @@ export const createNote = async (noteData) => {
 };
 
 //查询某个用户的所有笔记
-export const getNotes = async (userId) => {
-  return axiosInstance.get(`/notes/user/${userId}`);
+export const getNotes = (userId, params) => {
+  return axiosInstance.get(`/notes/user/${userId}`, { params });
 };
 
 //查询笔记详情
@@ -33,4 +33,14 @@ export const updateNote = async (noteId, noteData) => {
 //删除笔记
 export const deleteNote = async (noteId) => {
   return axiosInstance.delete(`/notes/${noteId}`);
+};
+
+//获取各分类的笔记数量统计
+export const getCategoryNotesStats = async (userId) => {
+  return axiosInstance.get(`/notes/stats/categories/${userId}`);
+};
+
+//获取最近7天的笔记发布统计
+export const getRecentNotesStats = async (userId) => {
+  return axiosInstance.get(`/notes/stats/recent/${userId}`);
 };

@@ -4,13 +4,32 @@ import pool from "../config/db.js";
 export const createCategory = async (req, res) => {
   try {
     const { name } = req.body;
-    const [result] = await pool.query(
-      "INSERT INTO categories (name) VALUES (?)",
+
+    // 验证分类名称是否为空
+    if (!name || name.trim() === "") {
+      return res.status(400).json({ error: "分类名称不能为空" });
+    }
+
+    // 检查分类名称是否已存在
+    const [existing] = await pool.query(
+      "SELECT * FROM categories WHERE name = ?",
       [name]
     );
-    res.status(201).json({ id: result.insertId, name });
+
+    if (existing.length > 0) {
+      return res.status(400).json({ error: "该分类名称已存在" });
+    }
+
+    // 创建新分类
+    const [result] = await pool.query(
+      "INSERT INTO categories (name) VALUES (?)",
+      [name.trim()]
+    );
+
+    res.status(201).json({ id: result.insertId, name: name.trim() });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("创建分类失败:", error);
+    res.status(500).json({ error: "服务器内部错误，创建分类失败" });
   }
 };
 

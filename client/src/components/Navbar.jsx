@@ -1,13 +1,16 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Layout, Menu, Typography, Avatar, Space, Button } from 'antd';
+import { Layout, Menu, Typography, Avatar, Space, Button, Switch } from 'antd';
 import {
   UserOutlined,
   HomeOutlined,
   AppstoreOutlined,
   FileOutlined,
+  BulbOutlined,
+  SettingOutlined,
 } from '@ant-design/icons';
 import { useStore } from '@/store/userStore';
+import { useThemeStore } from '@/store/themeStore';
 
 const { Header } = Layout;
 const { Text } = Typography;
@@ -15,7 +18,8 @@ const { Text } = Typography;
 const Navbar = () => {
   const { user, logout } = useStore();
   const navigate = useNavigate();
-  const location = useLocation(); //使用 useLocation 钩子获取当前路由位置
+  const location = useLocation();
+  const { isDarkMode, toggleTheme } = useThemeStore();
 
   const handleLogout = () => {
     if (window.confirm('确定退出?')) {
@@ -33,10 +37,12 @@ const Navbar = () => {
         return ['categories'];
       case '/notes':
         return ['notes'];
+      case '/settings':
+        return ['settings'];
       default:
         return [];
     }
-  });
+  }, [location.pathname]);
 
   return (
     <Header
@@ -82,10 +88,26 @@ const Navbar = () => {
             ),
             onClick: () => navigate('/notes'),
           },
+          {
+            key: 'settings',
+            label: (
+              <Space size="middle">
+                <SettingOutlined />
+                <span>设置</span>
+              </Space>
+            ),
+            onClick: () => navigate('/settings'),
+          },
         ]}
       />
 
-      <div>
+      <Space size="middle">
+        <Switch
+          checkedChildren={<BulbOutlined />}
+          unCheckedChildren={<BulbOutlined />}
+          checked={isDarkMode}
+          onChange={toggleTheme}
+        />
         {user ? (
           <Space onClick={handleLogout}>
             {user.avatar_url ? (
@@ -93,7 +115,7 @@ const Navbar = () => {
             ) : (
               <Avatar icon={<UserOutlined />} />
             )}
-            <Text className="ml-2 text-white">
+            <Text style={{ color: isDarkMode ? '#fff' : '#fff' }}>
               {user.nickname || user.username}
             </Text>
           </Space>
@@ -102,7 +124,7 @@ const Navbar = () => {
             登录
           </Button>
         )}
-      </div>
+      </Space>
     </Header>
   );
 };
