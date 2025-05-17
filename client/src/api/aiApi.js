@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const DEEPSEEK_API_KEY = '';
+const DEEPSEEK_API_KEY = 'sk-727bb79284dc4d3facb3f5470607848c';
 const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
 
 // 处理Markdown内容，确保格式正确
