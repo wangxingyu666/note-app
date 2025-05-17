@@ -32,6 +32,7 @@ import Navbar3 from '@/components/Navbar3';
 import Navbar4 from '@/components/Navbar4';
 import { updateUserSettings, updateUserProfile } from '@/api/userApi';
 import './Settings.css';
+import '@/style/Layout.css';
 
 const { Content } = Layout;
 const { Title, Text } = Typography;
@@ -57,7 +58,9 @@ const Settings = () => {
         password: '',
         confirmPassword: '',
       });
-      setNavbarTheme(user.theme_id || 0);
+      setNavbarTheme(
+        user.theme_id !== undefined ? user.theme_id : user.theme || 0,
+      );
       setNavbarPosition(user.navbar_position || 'top');
     }
   }, [user, form]);
@@ -67,7 +70,7 @@ const Settings = () => {
     if (user) {
       try {
         await updateUserSettings(user.id, { theme: value });
-        setUser({ ...user, theme_id: value });
+        setUser({ ...user, theme: value, theme_id: value });
         message.success('导航栏主题已更新');
       } catch (error) {
         console.error('更新主题失败:', error);
@@ -329,31 +332,31 @@ const Settings = () => {
   ];
 
   return (
-    <App>
-      <Layout className="settings-layout">
-        <NavbarWrapper />
-        <Content className="settings-content">
-          <Title level={2} className="settings-title">
-            设置
-          </Title>
-          <Tabs
-            defaultActiveKey="theme"
-            items={tabsItems}
-            className="settings-tabs"
-          />
+    <Layout className="app-layout">
+      <NavbarWrapper />
+      <Content
+        className={`${user?.navbar_position === 'left' ? 'content-with-left-nav' : 'content-with-top-nav'} main-content`}
+      >
+        <Title level={2} className="settings-title">
+          设置
+        </Title>
+        <Tabs
+          defaultActiveKey="theme"
+          items={tabsItems}
+          className="settings-tabs"
+        />
 
-          <Card className="settings-card logout-card">
-            <Button
-              type="danger"
-              icon={<LogoutOutlined />}
-              onClick={handleLogout}
-            >
-              退出登录
-            </Button>
-          </Card>
-        </Content>
-      </Layout>
-    </App>
+        <Card className="settings-card logout-card">
+          <Button
+            type="danger"
+            icon={<LogoutOutlined />}
+            onClick={handleLogout}
+          >
+            退出登录
+          </Button>
+        </Card>
+      </Content>
+    </Layout>
   );
 };
 

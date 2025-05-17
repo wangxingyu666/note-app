@@ -13,7 +13,13 @@ const Login = () => {
   const onSubmit = async (values) => {
     try {
       const response = await loginUser(values);
-      setUser(response.data); // 设置用户信息
+      const userData = response.data;
+
+      if (userData.theme && !userData.theme_id) {
+        userData.theme_id = userData.theme;
+      }
+
+      setUser(userData);
       message.success('登录成功');
       navigate('/'); // 跳转到主页
     } catch (error) {

@@ -9,8 +9,15 @@ import {
   Layout,
   Select,
   Input,
+  Upload,
+  Tooltip,
 } from 'antd';
-import { getNotes, deleteNote } from '@/api/noteApi';
+import {
+  UploadOutlined,
+  DownloadOutlined,
+  QuestionCircleOutlined,
+} from '@ant-design/icons';
+import { getNotes, deleteNote, exportNotes, importNotes } from '@/api/noteApi';
 import { getCategories } from '@/api/categoryApi';
 import { useStore } from '@/store/userStore';
 import { useNavigate } from 'react-router-dom';
@@ -55,20 +62,151 @@ const Notes = () => {
         categoryId: searchParams.category,
         sortOrder: searchParams.sortOrder,
       });
-      // 添加数组验证
       const safeNotes = Array.isArray(fetchNotesData?.data)
         ? fetchNotesData.data
         : [];
       setNotes(safeNotes);
     } catch (error) {
       console.error('Failed to fetch notes:', error);
-      alert('获取笔记失败');
+      message.error('获取笔记失败');
     }
   };
 
   useEffect(() => {
     fetchNotes();
-  }, [searchParams]); // 添加searchParams依赖
+  }, [searchParams]);
+
+  // 处理导出笔记
+  const handleExport = async () => {
+    try {
+      const response = await exportNotes(user.id);
+      const blob = new Blob([response.data], { type: 'application/json' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'notes_export.json';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      message.success('笔记导出成功');
+    } catch (error) {
+      console.error('导出笔记失败:', error);
+      message.error('导出笔记失败');
+    }
+  };
+
+  // 处理导入笔记
+  const handleImport = async (file) => {
+    try {
+      // 首先验证文件类型
+      if (file.type !== 'application/json') {
+        message.error('请上传JSON格式的文件');
+        return false;
+      }
+
+      // 读取文件内容并验证格式
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          // 验证JSON格式
+          const content = JSON.parse(e.target.result);
+          if (!Array.isArray(content)) {
+            message.error('文件格式错误：数据必须是数组格式');
+            return;
+          }
+
+          // 验证数据结构
+          const invalidData = content.some(
+            (note) => !note.title || !note.content || !note.category_id,
+          );
+          if (invalidData) {
+            message.error(
+              '数据格式错误：每条笔记必须包含 title、content 和 category_id 字段',
+            );
+            return;
+          }
+
+          // 发送导入请求
+          const response = await importNotes(user.id, file);
+          if (response.data.success) {
+            message.success(response.data.message);
+            fetchNotes(); // 刷新笔记列表
+          }
+        } catch (parseError) {
+          if (parseError.response?.data?.error) {
+            // 显示服务器返回的具体错误信息
+            message.error(parseError.response.data.error);
+            if (parseError.response.data.tip) {
+              message.info(parseError.response.data.tip);
+            }
+            if (parseError.response.data.expectedFormat) {
+              Modal.info({
+                title: '预期的JSON格式',
+                content: (
+                  <div>
+                    <p>请按照以下格式准备您的JSON数据：</p>
+                    <pre style={{ background: '#f5f5f5', padding: '10px' }}>
+                      {JSON.stringify(
+                        parseError.response.data.expectedFormat.example,
+                        null,
+                        2,
+                      )}
+                    </pre>
+                  </div>
+                ),
+              });
+            }
+          } else {
+            message.error('JSON格式无效，请检查文件内容');
+          }
+        }
+      };
+
+      reader.readAsText(file);
+      return false; // 阻止自动上传
+    } catch (error) {
+      console.error('导入笔记失败:', error);
+      message.error(
+        '导入失败：' + (error.response?.data?.error || error.message),
+      );
+      return false;
+    }
+  };
+
+  // 显示JSON格式说明
+  const showFormatHelp = () => {
+    Modal.info({
+      title: '笔记导入格式说明',
+      width: 600,
+      content: (
+        <div>
+          <p>导入的JSON文件应该包含一个笔记数组，每个笔记对象包含以下字段：</p>
+          <pre style={{ background: '#f5f5f5', padding: '10px' }}>
+            {JSON.stringify(
+              [
+                {
+                  title: '笔记标题（必填）',
+                  content: '笔记内容（必填）',
+                  category_id: 1, // 分类ID（必填，数字类型）
+                  tags: ['标签1', '标签2'], // 可选，数组类型
+                },
+              ],
+              null,
+              2,
+            )}
+          </pre>
+          <p>注意事项：</p>
+          <ul>
+            <li>文件必须是有效的JSON格式</li>
+            <li>数据必须是数组格式，即使只有一条笔记也要用[]包裹</li>
+            <li>category_id必须是存在的分类ID</li>
+            <li>tags字段可选，但如果提供则必须是字符串数组</li>
+          </ul>
+        </div>
+      ),
+    });
+  };
 
   return (
     <Layout>
@@ -111,9 +249,28 @@ const Notes = () => {
               {searchParams.sortOrder === 'desc' ? '最新优先' : '默认排序'}
             </Button>
           </div>
-          <Button type="primary" onClick={() => navigate('/create-note')}>
-            创建笔记
-          </Button>
+          <div className="flex gap-2 items-center">
+            <Upload
+              showUploadList={false}
+              beforeUpload={handleImport}
+              accept=".json"
+            >
+              <Button icon={<UploadOutlined />}>导入笔记</Button>
+            </Upload>
+            <Tooltip title="查看导入格式说明">
+              <Button
+                type="text"
+                icon={<QuestionCircleOutlined />}
+                onClick={showFormatHelp}
+              />
+            </Tooltip>
+            <Button icon={<DownloadOutlined />} onClick={handleExport}>
+              导出笔记
+            </Button>
+            <Button type="primary" onClick={() => navigate('/create-note')}>
+              创建笔记
+            </Button>
+          </div>
         </div>
         <List
           grid={{ gutter: 16, column: 4 }}

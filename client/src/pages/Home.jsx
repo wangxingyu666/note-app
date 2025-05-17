@@ -12,6 +12,7 @@ import NavbarWrapper from '@/components/NavbarWrapper';
 import { useStore } from '@/store/userStore';
 import { formatDate } from '@/utils/dateFormatter';
 import '@/style/index.css';
+import '@/style/Layout.css';
 
 const { Content } = Layout;
 const { Title, Text } = Typography;
@@ -192,9 +193,11 @@ const Home = () => {
   }, [loading, recentStats]);
 
   return (
-    <Layout>
+    <Layout className="app-layout">
       <NavbarWrapper />
-      <Content className="p-6">
+      <Content
+        className={`${user?.navbar_position === 'left' ? 'content-with-left-nav' : 'content-with-top-nav'} main-content`}
+      >
         <div className="mb-6">
           {user ? (
             <Title level={2}>欢迎, {user.nickname || user.username}</Title>

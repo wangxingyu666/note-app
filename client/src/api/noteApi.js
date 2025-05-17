@@ -44,3 +44,21 @@ export const getCategoryNotesStats = async (userId) => {
 export const getRecentNotesStats = async (userId) => {
   return axiosInstance.get(`/notes/stats/recent/${userId}`);
 };
+
+// 导出笔记
+export const exportNotes = async (userId) => {
+  return axiosInstance.get(`/notes/export/${userId}`, {
+    responseType: 'blob',
+  });
+};
+
+// 导入笔记
+export const importNotes = async (userId, file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  return axiosInstance.post(`/notes/import/${userId}`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+};

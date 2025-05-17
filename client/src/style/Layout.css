@@ -1,0 +1,34 @@
+.app-layout {
+  min-height: 100vh;
+}
+
+/* 顶部导航栏模式下的内容区域样式 */
+.content-with-top-nav {
+  padding-top: 64px; /* Header 的默认高度 */
+  min-height: calc(100vh - 64px);
+  transition: padding 0.3s ease;
+}
+
+/* 左侧导航栏模式下的内容区域样式 */
+.content-with-left-nav {
+  padding-left: 200px; /* Sider 的默认宽度 */
+  min-height: 100vh;
+  transition: padding 0.3s ease;
+}
+
+/* 内容区域通用样式 */
+.main-content {
+  padding: 24px;
+  background: #fff;
+}
+
+/* 响应式布局调整 */
+@media screen and (max-width: 768px) {
+  .content-with-left-nav {
+    padding-left: 0;
+  }
+
+  .content-with-top-nav {
+    padding-top: 64px;
+  }
+}

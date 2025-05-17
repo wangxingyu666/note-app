@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layout, Button, Drawer } from 'antd';
+import { Layout, Button } from 'antd';
 import { useStore } from '@/store/userStore';
 import Navbar from './Navbar';
 import Navbar1 from './Navbar1';
@@ -7,14 +7,28 @@ import Navbar2 from './Navbar2';
 import Navbar3 from './Navbar3';
 import Navbar4 from './Navbar4';
 import { MenuOutlined } from '@ant-design/icons';
+import '@/style/Layout.css';
 
 const { Sider } = Layout;
 
 const NavbarWrapper = () => {
   const { user, setUser } = useStore();
-  const themeId = user?.theme_id || 0;
+  // 优先使用theme_id，如果不存在则尝试使用theme，都不存在则使用默认值0
+  const themeId =
+    user?.theme_id !== undefined
+      ? user.theme_id
+      : user?.theme !== undefined
+        ? user.theme
+        : 0;
   const position = user?.navbar_position || 'top';
   const visible = user?.navbar_visible !== false;
+
+  // 如果user存在但theme_id和theme不一致，更新用户状态
+  React.useEffect(() => {
+    if (user && user.theme !== undefined && user.theme_id !== user.theme) {
+      setUser({ ...user, theme_id: user.theme });
+    }
+  }, [user, setUser]);
 
   // 根据用户的theme_id选择显示的导航栏组件
   const renderNavbar = () => {
@@ -59,6 +73,9 @@ const NavbarWrapper = () => {
           left: 0,
           top: 0,
           bottom: 0,
+          zIndex: 1001,
+          boxShadow: '2px 0 8px rgba(0,0,0,0.1)',
+          overflow: 'auto',
         }}
       >
         {renderNavbar()}

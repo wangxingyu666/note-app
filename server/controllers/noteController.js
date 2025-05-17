@@ -204,3 +204,150 @@ export const getRecentNotesStats = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+// 导出笔记
+export const exportNotes = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { noteId } = req.query; // 可选参数，用于导出单个笔记
+
+    let query = "SELECT * FROM notes WHERE user_id = ?";
+    const params = [userId];
+
+    if (noteId) {
+      query += " AND id = ?";
+      params.push(noteId);
+    }
+
+    const [notes] = await pool.query(query, params);
+
+    // 处理每个笔记的tags
+    const processedNotes = notes.map((note) => ({
+      ...note,
+      tags:
+        typeof note.tags === "string" ? JSON.parse(note.tags) : note.tags || [],
+    }));
+
+    // 设置响应头
+    res.setHeader("Content-Type", "application/json");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=notes_export_${userId}.json`
+    );
+
+    res.status(200).json(processedNotes);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// 导入笔记
+export const importNotes = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!req.file) {
+      return res.status(400).json({ error: "没有上传文件" });
+    }
+
+    let notesData;
+    try {
+      notesData = JSON.parse(req.file.buffer.toString());
+    } catch (error) {
+      return res
+        .status(400)
+        .json({ error: "JSON格式无效，请确保文件内容是有效的JSON格式" });
+    }
+
+    if (!Array.isArray(notesData)) {
+      return res.status(400).json({
+        error: "无效的笔记数据格式，数据必须是数组格式",
+        expectedFormat: {
+          format: "数组",
+          example: [
+            {
+              title: "笔记标题",
+              content: "笔记内容",
+              category_id: "分类ID（数字）",
+              tags: ["标签1", "标签2"],
+            },
+          ],
+        },
+      });
+    }
+
+    if (notesData.length === 0) {
+      return res.status(400).json({ error: "笔记数据为空" });
+    }
+
+    // 开始事务
+    const connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    try {
+      // 插入每个笔记
+      for (let i = 0; i < notesData.length; i++) {
+        const note = notesData[i];
+        const { title, content, tags, category_id } = note;
+
+        // 详细的字段验证
+        const errors = [];
+        if (!title) errors.push("标题不能为空");
+        if (!content) errors.push("内容不能为空");
+        if (!category_id) errors.push("分类ID不能为空");
+        if (typeof category_id !== "number")
+          errors.push("分类ID必须是数字类型");
+        if (tags && !Array.isArray(tags)) errors.push("标签必须是数组格式");
+
+        if (errors.length > 0) {
+          throw new Error(`第 ${i + 1} 条笔记数据无效：${errors.join(", ")}`);
+        }
+
+        // 确保content是字符串类型
+        const sanitizedContent =
+          typeof content === "string" ? content : JSON.stringify(content);
+
+        // 验证分类是否存在
+        const [categoryExists] = await connection.query(
+          "SELECT id FROM categories WHERE id = ?",
+          [category_id]
+        );
+
+        if (categoryExists.length === 0) {
+          throw new Error(`第 ${i + 1} 条笔记的分类ID ${category_id} 不存在`);
+        }
+
+        // 插入笔记
+        await connection.query(
+          `INSERT INTO notes (title, content, tags, user_id, category_id, created_at) 
+           VALUES (?, ?, ?, ?, ?, NOW())`,
+          [
+            title,
+            sanitizedContent,
+            JSON.stringify(tags || []),
+            userId,
+            category_id,
+          ]
+        );
+      }
+
+      // 提交事务
+      await connection.commit();
+      res.status(200).json({
+        message: `成功导入 ${notesData.length} 条笔记`,
+        success: true,
+      });
+    } catch (error) {
+      // 如果出错，回滚事务
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
+  } catch (error) {
+    res.status(400).json({
+      error: error.message,
+      tip: "请确保您的JSON数据格式正确，每条笔记都包含必要的字段（title、content、category_id）",
+    });
+  }
+};
